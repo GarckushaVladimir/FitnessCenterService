@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Форма программы</title>
+</head>
+<body th:fragment="content">
+<h2 class="mb-4" th:text="${program.id} ? 'Редактирование программы' : 'Новая программа'"></h2>
+
+<form th:action="@{/programs}" th:object="${program}" method="post">
+    <input type="hidden" th:field="*{id}">
+
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" class="form-control" th:field="*{name}" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Тип</label>
+        <select class="form-select" th:field="*{type}" required>
+            <option value="Индивидуальная">Индивидуальная</option>
+            <option value="Групповая">Групповая</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Длительность (минут)</label>
+        <input type="number" class="form-control" th:field="*{duration}" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a th:href="@{/programs}" class="btn btn-secondary">Отмена</a>
+</form>
+</body>
+</html>

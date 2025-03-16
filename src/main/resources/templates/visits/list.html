@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Посещения</title>
+</head>
+<body th:fragment="content">
+<h2>Посещения клиента: <span th:text="${client.fullName}"></span></h2>
+
+<a th:href="@{/visits/new/{id}(id=${client.id})}" class="btn btn-primary mb-3">Добавить посещение</a>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Дата и время</th>
+        <th>Программа</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="visit : ${visits}">
+        <td th:text="${#temporals.format(visit.visitDate, 'dd.MM.yyyy HH:mm')}"></td>
+        <td th:text="${visit.program?.name} ?: 'Без программы'"></td>
+        <td>
+            <form th:action="@{/visits/delete/{id}(id=${visit.id})}" method="post">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

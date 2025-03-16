@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Клиенты</title>
+</head>
+<body th:fragment="content">
+<h2 class="mb-4">Клиенты</h2>
+
+<a th:href="@{/clients/new}" class="btn btn-primary mb-3">Добавить клиента</a>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>ФИО</th>
+        <th>Телефон</th>
+        <th>Email</th>
+        <th>Дата рождения</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="client : ${clients}">
+        <td th:text="${client.fullName}"></td>
+        <td th:text="${client.phone}"></td>
+        <td th:text="${client.email}"></td>
+        <td th:text="${#temporals.format(client.birthDate, 'dd.MM.yyyy')}"></td>
+        <td>
+            <a th:href="@{/clients/edit/{id}(id=${client.id})}"
+               class="btn btn-warning btn-sm">Редактировать</a>
+            <form th:action="@{/clients/delete/{id}(id=${client.id})}"
+                  method="post"
+                  style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+            </form>
+            <a th:href="@{/clients/{id}/memberships(id=${client.id})}"
+               class="btn btn-info btn-sm">Абонементы</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

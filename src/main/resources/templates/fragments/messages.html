@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="messages">
+    <div th:if="${#request.getParameter('success')}"
+         class="alert alert-success alert-dismissible fade show">
+        Операция выполнена успешно!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${#fields.hasErrors('*')}"
+         class="alert alert-danger alert-dismissible fade show">
+        <h5>Ошибки в форме:</h5>
+        <ul>
+            <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+</body>
+</html>
