@@ -7,7 +7,7 @@
 <body th:fragment="content">
 <h2 class="mb-4" th:text="${program.id} ? 'Редактирование программы' : 'Новая программа'"></h2>
 
-<form th:action="@{/programs}" th:object="${program}" method="post">
+<form th:action="@{/programs/save}" th:object="${program}" method="post">
     <input type="hidden" th:field="*{id}">
 
     <div class="mb-3">
