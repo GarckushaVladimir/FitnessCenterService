@@ -35,6 +35,12 @@ public class Membership {
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
+    @PrePersist
+    @PreUpdate
+    public void calculateIsActive() {
+        this.isActive = LocalDate.now().isBefore(this.endDate);
+    }
+
     public Long getId() {
         return id;
     }

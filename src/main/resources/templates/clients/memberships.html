@@ -9,7 +9,9 @@
 <div class="container mt-4">
     <h2>Абонементы клиента: <span th:text="${client.fullName}"></span></h2>
 
-    <a th:href="@{/clients}" class="btn btn-secondary mb-3">Назад</a>
+    <!-- Кнопка добавления -->
+    <a th:href="@{/memberships/new/{clientId}(clientId=${client.id})}"
+       class="btn btn-success mb-3">Добавить</a>
 
     <table class="table table-striped">
         <thead>
@@ -18,6 +20,7 @@
             <th>Тип</th>
             <th>Стоимость</th>
             <th>Статус</th>
+            <th>Действия</th>
         </tr>
         </thead>
         <tbody>
@@ -32,9 +35,22 @@
                 <span th:if="${membership.isActive}" class="badge bg-success">Активен</span>
                 <span th:unless="${membership.isActive}" class="badge bg-secondary">Истек</span>
             </td>
+            <td>
+                <!-- Кнопка редактирования -->
+                <a th:href="@{/memberships/edit/{id}(id=${membership.id})}"
+                   class="btn btn-warning btn-sm me-2">Редактировать</a>
+
+                <!-- Кнопка удаления -->
+                <form th:action="@{/memberships/delete/{id}(id=${membership.id})}"
+                      method="post"
+                      style="display: inline-block;">
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>
+    <a th:href="@{/clients}" class="btn btn-secondary">Назад к клиентам</a>
 </div>
 </body>
 </html>
