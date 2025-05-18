@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @RequestMapping("/visits")
 public class VisitController {
     private final VisitService visitService;

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="content">
+<h2 th:text="${trainer.id} ? 'Редактирование тренера' : 'Новый тренер'"></h2>
+
+<form th:action="@{/trainers/save}" method="post" th:object="${trainer}">
+    <input type="hidden" th:field="*{id}">
+
+    <div class="mb-3">
+        <label class="form-label">ФИО</label>
+        <input type="text" class="form-control" th:field="*{fullName}" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Стаж (лет)</label>
+        <input type="number" class="form-control" th:field="*{experience}" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Программы (специализация)</label>
+        <select
+                class="form-select"
+                name="programIds"
+                multiple="multiple"
+                required
+        >
+            <option
+                    th:each="program : ${allPrograms}"
+                    th:value="${program.id}"
+                    th:text="${program.name}"
+            ></option>
+        </select>
+        <small class="form-text text-muted">
+            Удерживайте Ctrl (Cmd на Mac) для выбора нескольких программ.
+        </small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a th:href="@{/trainers}" class="btn btn-secondary">Отмена</a>
+</form>
+</body>
+</html>

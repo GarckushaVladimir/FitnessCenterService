@@ -27,6 +27,9 @@ public class TrainingProgram {
     @ManyToMany(mappedBy = "trainingPrograms")
     private List<Client> clients = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "programs")
+    private List<Trainer> trainers = new ArrayList<>();
+
     public Long getId() {
         return id;
     }

@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @RequestMapping("/clients")
 public class ClientController {
     private final ClientService clientService;
@@ -62,6 +62,14 @@ public class ClientController {
         model.addAttribute("content", "clients/memberships");
         model.addAttribute("client", clientService.getClientById(id));
         model.addAttribute("memberships", membershipService.getMembershipsByClientId(id));
+        return "layout";
+    }
+
+    @GetMapping("/active")
+    public String listActiveClients(Model model) {
+        model.addAttribute("title", "Активные клиенты");
+        model.addAttribute("content", "clients/list");
+        model.addAttribute("clients", clientService.getClientsWithActiveMemberships());
         return "layout";
     }
 }

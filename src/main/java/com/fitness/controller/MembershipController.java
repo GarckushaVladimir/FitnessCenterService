@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @Controller
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @RequestMapping("/memberships")
 public class MembershipController {
     private final MembershipService membershipService;

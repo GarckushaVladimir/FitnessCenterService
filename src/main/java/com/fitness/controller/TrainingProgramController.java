@@ -8,7 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @RequestMapping("/programs")
 public class TrainingProgramController {
     private final TrainingProgramService programService;

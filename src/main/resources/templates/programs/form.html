@@ -16,6 +16,17 @@
     </div>
 
     <div class="mb-3">
+        <label class="form-label">Тренер</label>
+        <select class="form-select" th:field="*{trainer}">
+            <option value="">Не выбран</option>
+            <option th:each="trainer : ${trainers}"
+                    th:value="${trainer.id}"
+                    th:text="${trainer.fullName} + ' (' + ${trainer.specialization} + ')'">
+            </option>
+        </select>
+    </div>
+
+    <div class="mb-3">
         <label class="form-label">Тип</label>
         <select class="form-select" th:field="*{type}" required>
             <option value="Индивидуальная">Индивидуальная</option>
