@@ -3,44 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Форма программы</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body th:fragment="content">
-<h2 class="mb-4" th:text="${program.id} ? 'Редактирование программы' : 'Новая программа'"></h2>
+<div class="container mt-4">
+    <h2 class="mb-4" th:text="${program.id} ? 'Редактирование программы' : 'Новая программа'"></h2>
 
-<form th:action="@{/programs/save}" th:object="${program}" method="post">
-    <input type="hidden" th:field="*{id}">
+    <form th:action="@{/programs/save}" th:object="${program}" method="post">
+        <input type="hidden" th:field="*{id}">
 
-    <div class="mb-3">
-        <label class="form-label">Название</label>
-        <input type="text" class="form-control" th:field="*{name}" required>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Название</label>
+            <input type="text"
+                   class="form-control"
+                   th:field="*{name}"
+                   required
+                   minlength="3"
+                   maxlength="50">
+            <small class="form-text text-muted">От 3 до 50 символов</small>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Тренер</label>
-        <select class="form-select" th:field="*{trainer}">
-            <option value="">Не выбран</option>
-            <option th:each="trainer : ${trainers}"
-                    th:value="${trainer.id}"
-                    th:text="${trainer.fullName} + ' (' + ${trainer.specialization} + ')'">
-            </option>
-        </select>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Тип</label>
+            <select class="form-select"
+                    th:field="*{type}"
+                    required>
+                <option value="">Выберите тип</option>
+                <option value="Индивидуальная">Индивидуальная</option>
+                <option value="Групповая">Групповая</option>
+            </select>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Тип</label>
-        <select class="form-select" th:field="*{type}" required>
-            <option value="Индивидуальная">Индивидуальная</option>
-            <option value="Групповая">Групповая</option>
-        </select>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Длительность (минут)</label>
+            <input type="number"
+                   class="form-control"
+                   th:field="*{duration}"
+                   required
+                   min="15"
+                   max="180">
+            <small class="form-text text-muted">От 15 до 180 минут</small>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Длительность (минут)</label>
-        <input type="number" class="form-control" th:field="*{duration}" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Сохранить</button>
-    <a th:href="@{/programs}" class="btn btn-secondary">Отмена</a>
-</form>
+        <div class="d-grid gap-2 d-md-block">
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${program.id} ? 'Сохранить изменения' : 'Создать программу'"></span>
+            </button>
+            <a th:href="@{/programs}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
 </body>
 </html>
