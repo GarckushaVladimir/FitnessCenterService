@@ -49,6 +49,7 @@
                             <th>Дата</th>
                             <th>Время</th>
                             <th>Программа</th>
+                            <th>Тренер</th>
                             <th>Длительность</th>
                         </tr>
                         </thead>
@@ -60,6 +61,7 @@
                                     <span th:text="${visit.program?.name} ?: 'Без программы'"
                                           class="badge bg-info"></span>
                             </td>
+                            <td th:text="${visit.trainer?.fullName} ?: 'Не указан'"></td>
                             <td>
                                     <span th:text="${visit.program?.duration}"
                                           class="badge bg-secondary">

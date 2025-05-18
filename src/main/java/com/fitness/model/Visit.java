@@ -25,6 +25,10 @@ public class Visit {
     @JoinColumn(name = "program_id")
     private TrainingProgram program;
 
+    @ManyToOne
+    @JoinColumn(name = "trainer_id")
+    private Trainer trainer;
+
     public Long getId() {
         return id;
     }
@@ -55,5 +59,13 @@ public class Visit {
 
     public void setProgram(TrainingProgram program) {
         this.program = program;
+    }
+
+    public Trainer getTrainer() {
+        return trainer;
+    }
+
+    public void setTrainer(Trainer trainer) {
+        this.trainer = trainer;
     }
 }

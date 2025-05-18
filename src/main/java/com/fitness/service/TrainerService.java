@@ -5,6 +5,8 @@ import com.fitness.model.TrainingProgram;
 import com.fitness.repository.TrainerRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,8 +25,21 @@ public class TrainerService {
     }
 
     public Trainer getTrainerById(Long id) {
-        return trainerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Trainer not found"));
+        return trainerRepository.findByIdWithPrograms(id)
+                .orElseThrow(() -> new RuntimeException("Тренер не найден"));
+    }
+
+    public List<Trainer> getTrainersByProgram(Long programId) {
+        if (programId == null) return Collections.emptyList();
+
+        List<Trainer> trainers = trainerRepository.findTrainersByProgramId(programId);
+
+        // Очистка циклических ссылок
+        trainers.forEach(trainer -> {
+            trainer.setPrograms(null); // Исключаем программы из ответа
+        });
+
+        return trainers;
     }
 
     @Transactional

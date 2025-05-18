@@ -1,5 +1,7 @@
 package com.fitness.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class Trainer {
     @Column(nullable = false)
     private Integer experience;
 
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @ManyToMany
     @JoinTable(
             name = "trainer_program",
@@ -33,5 +36,13 @@ public class Trainer {
 
     public List<TrainingProgram> getPrograms() {
         return programs;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getFullName() {
+        return fullName;
     }
 }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Добавить посещение</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body th:fragment="content">
 <h2>Добавить посещение для: <span th:text="${client.fullName}"></span></h2>
@@ -10,21 +11,71 @@
 <form th:action="@{/visits/save}" th:object="${visit}" method="post">
     <input type="hidden" name="clientId" th:value="${client.id}">
 
+    <!-- Основные поля -->
     <div class="mb-3">
         <label class="form-label">Дата и время</label>
         <input type="datetime-local" class="form-control" th:field="*{visitDate}" required>
     </div>
 
+    <!-- Выбор программы -->
     <div class="mb-3">
         <label class="form-label">Программа</label>
-        <select class="form-select" th:field="*{program}">
+        <select
+                class="form-select"
+                id="programSelect"
+                th:field="*{program}"
+                required
+        >
             <option value="">Без программы</option>
-            <option th:each="program : ${programs}"
+            <option
+                    th:each="program : ${programs}"
                     th:value="${program.id}"
-                    th:text="${program.name}">
-            </option>
+                    th:text="${program.name}"
+                    th:data-type="${program.name == 'Йога для начинающих' ? 'yoga' : 'other'}"
+            ></option>
         </select>
     </div>
+
+    <div class="mb-3">
+        <label class="form-label">
+            Тренер
+            <small class="text-muted">(доступны только специалисты по выбранной программе)</small>
+        </label>
+        <select class="form-select" id="trainerSelect" th:field="*{trainer}" disabled>
+            <option value="">Сначала выберите программу</option>
+        </select>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#programSelect').change(function() {
+                const programId = $(this).val();
+                const trainerSelect = $('#trainerSelect');
+
+                if (!programId) {
+                    trainerSelect.prop('disabled', true).html('<option value="">Сначала выберите программу</option>');
+                    return;
+                }
+
+                $.get('/visits/trainers/by-program', { programId: programId }, function(trainers) {
+    let options = '<option value="">Выберите тренера</option>';
+
+    trainers.forEach(trainer => {
+        options += `
+            <option
+                value="${trainer.id}"
+                data-trainer-name="${trainer.fullName}"
+            >
+                ${trainer.fullName}
+            </option>
+        `;
+    });
+
+    $('#trainerSelect').html(options).prop('disabled', false);
+});
+            });
+        });
+    </script>
 
     <button type="submit" class="btn btn-primary">Сохранить</button>
     <a th:href="@{/visits/client/{id}(id=${client.id})}" class="btn btn-secondary">Отмена</a>

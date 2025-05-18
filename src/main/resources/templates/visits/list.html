@@ -14,6 +14,8 @@
     <tr>
         <th>Дата и время</th>
         <th>Программа</th>
+        <!-- Добавлен новый столбец -->
+        <th>Тренер</th>
         <th>Действия</th>
     </tr>
     </thead>
@@ -21,6 +23,8 @@
     <tr th:each="visit : ${visits}">
         <td th:text="${#temporals.format(visit.visitDate, 'dd.MM.yyyy HH:mm')}"></td>
         <td th:text="${visit.program?.name} ?: 'Без программы'"></td>
+        <!-- Новая ячейка с данными о тренере -->
+        <td th:text="${visit.trainer?.fullName} ?: 'Не указан'"></td>
         <td>
             <form th:action="@{/visits/delete/{id}(id=${visit.id})}" method="post">
                 <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
