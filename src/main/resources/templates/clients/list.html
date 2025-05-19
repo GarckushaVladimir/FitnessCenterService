@@ -105,11 +105,13 @@
             </li>
 
             <li th:each="i : ${#numbers.sequence(
-                Math.max(0, clients.number-2),
-                Math.min(clients.number+2, clients.totalPages-1))}"
+                    T(java.lang.Math).max(0, clients.number - 2),
+                    T(java.lang.Math).min(clients.number + 2, clients.totalPages - 1))}"
                 class="page-item" th:classappend="${i == clients.number} ? 'active'">
-                <a class="page-link" th:href="@{/clients(page=${i}, sort=${sort}, search=${search})}"
-                   th:text="${i+1}"></a>
+
+                <a class="page-link"
+                   th:href="@{/clients(page=${i}, sort=${sort}, search=${search})}"
+                   th:text="${i + 1}"></a>
             </li>
 
             <li class="page-item" th:classappend="${clients.number >= clients.totalPages-1} ? 'disabled'">

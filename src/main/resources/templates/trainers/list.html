@@ -1,40 +1,119 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body th:fragment="content">
-<h2 class="mb-4">Тренеры</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Тренеры</h2>
+        <a th:href="@{/trainers/new}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> Добавить тренера
+        </a>
+    </div>
 
-<a th:href="@{/trainers/new}" class="btn btn-primary mb-3">Добавить тренера</a>
+    <form th:action="@{/trainers}" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   class="form-control"
+                   placeholder="Поиск по ФИО">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
 
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>ФИО</th>
-        <th>Стаж (лет)</th>
-        <th>Программы</th>
-        <th>Действия</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="trainer : ${trainers}">
-        <td th:text="${trainer.fullName}"></td>
-        <td th:text="${trainer.experience}"></td>
-        <td>
-                <span
-                        th:each="program : ${trainer.programs}"
-                        class="badge bg-primary me-1"
-                        th:text="${program.name}"
-                ></span>
-        </td>
-        <td>
-            <a th:href="@{/trainers/edit/{id}(id=${trainer.id})}"
-               class="btn btn-warning btn-sm">Редактировать</a>
-            <form th:action="@{/trainers/delete/{id}(id=${trainer.id})}"
-                  method="post" style="display: inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-            </form>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>
+                <a th:href="@{/trainers(page=0,
+                                  sort=${sort == 'fullName,asc' ? 'fullName,desc' : 'fullName,asc'},
+                                  search=${search})}">
+                    ФИО
+                    <i th:classappend="${sort.startsWith('fullName')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+            <th>
+                <a th:href="@{/trainers(page=0,
+                                  sort=${sort == 'experience,asc' ? 'experience,desc' : 'experience,asc'},
+                                  search=${search})}">
+                    Стаж
+                    <i th:classappend="${sort.startsWith('experience')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+            <th>Программы</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="trainer : ${trainers}">
+            <td th:text="${trainer.fullName}"></td>
+            <td th:text="${trainer.experience}"></td>
+            <td>
+                    <span
+                            th:each="program : ${trainer.programs}"
+                            class="badge bg-primary me-1"
+                            th:text="${program.name}"
+                    ></span>
+            </td>
+            <td>
+                <a th:href="@{/trainers/edit/{id}(id=${trainer.id})}"
+                   class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                <form th:action="@{/trainers/delete/{id}(id=${trainer.id})}"
+                      method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <!-- Блок пагинации -->
+    <nav th:if="${trainers.totalPages > 1}">
+        <ul class="pagination">
+            <!-- Первая страница -->
+            <li class="page-item" th:classappend="${trainers.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/trainers(page=0, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+
+            <!-- Предыдущая страница -->
+            <li class="page-item" th:classappend="${trainers.number == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/trainers(page=${trainers.number - 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            <!-- Номера страниц -->
+            <li th:each="i : ${#numbers.sequence(
+                    T(java.lang.Math).max(0, trainers.number - 2),
+                    T(java.lang.Math).min(trainers.number + 2, trainers.totalPages - 1))}"
+                class="page-item" th:classappend="${i == trainers.number} ? 'active'">
+
+                <a class="page-link"
+                   th:href="@{/trainers(page=${i}, sort=${sort}, search=${search})}"
+                   th:text="${i + 1}"></a>
+            </li>
+
+            <!-- Следующая страница -->
+            <li class="page-item" th:classappend="${trainers.number >= trainers.totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/trainers(page=${trainers.number + 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+
+            <!-- Последняя страница -->
+            <li class="page-item" th:classappend="${trainers.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/trainers(page=${trainers.totalPages - 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
 </body>
 </html>

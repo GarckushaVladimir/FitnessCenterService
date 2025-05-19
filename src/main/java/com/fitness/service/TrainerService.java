@@ -4,6 +4,9 @@ import com.fitness.model.Trainer;
 import com.fitness.model.TrainingProgram;
 import com.fitness.repository.TrainerRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -40,6 +43,14 @@ public class TrainerService {
         });
 
         return trainers;
+    }
+
+    public Page<Trainer> searchTrainers(String search, Pageable pageable) {
+        Specification<Trainer> spec = (root, query, cb) -> {
+            if (search == null || search.isEmpty()) return null;
+            return cb.like(cb.lower(root.get("fullName")), "%" + search.toLowerCase() + "%");
+        };
+        return trainerRepository.findAll(spec, pageable);
     }
 
     @Transactional

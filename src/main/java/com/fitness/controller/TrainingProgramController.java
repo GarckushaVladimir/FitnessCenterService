@@ -3,6 +3,9 @@ package com.fitness.controller;
 import com.fitness.model.TrainingProgram;
 import com.fitness.service.TrainingProgramService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +21,31 @@ public class TrainingProgramController {
     }
 
     @GetMapping
-    public String listPrograms(Model model) {
-        model.addAttribute("title", "Программы тренировок");
+    public String listPrograms(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "name,asc") String sort,
+            @RequestParam(required = false) String search,
+            Model model) {
+
+        String[] sortParams = sort.split(",");
+        Sort.Direction direction = sortParams.length > 1
+                ? Sort.Direction.fromString(sortParams[1])
+                : Sort.Direction.ASC;
+
+        PageRequest pageable = PageRequest.of(
+                page,
+                10,
+                Sort.by(direction, sortParams[0])
+        );
+
+        Page<TrainingProgram> programs = programService.searchPrograms(search, pageable);
+
+        model.addAttribute("title", "Программы");
         model.addAttribute("content", "programs/list");
-        model.addAttribute("programs", programService.getAllPrograms());
+        model.addAttribute("programs", programs);
+        model.addAttribute("sort", sort);
+        model.addAttribute("search", search);
+
         return "layout";
     }
 

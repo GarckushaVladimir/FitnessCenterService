@@ -1,39 +1,123 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Программы тренировок</title>
-</head>
 <body th:fragment="content">
-<h2 class="mb-4">Программы тренировок</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Программы тренировок</h2>
+        <a th:href="@{/programs/new}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Добавить программу
+        </a>
+    </div>
 
-<a th:href="@{/programs/new}" class="btn btn-primary mb-3">Добавить программу</a>
+    <form th:action="@{/programs}" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   class="form-control"
+                   placeholder="Поиск по названию">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
 
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>Название</th>
-        <th>Тип</th>
-        <th>Длительность (мин)</th>
-        <th>Действия</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="program : ${programs}">
-        <td th:text="${program.name}"></td>
-        <td th:text="${program.type}"></td>
-        <td th:text="${program.duration}"></td>
-        <td>
-            <a th:href="@{/programs/edit/{id}(id=${program.id})}"
-               class="btn btn-warning btn-sm">Редактировать</a>
-            <form th:action="@{/programs/delete/{id}(id=${program.id})}"
-                  method="post"
-                  style="display: inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-            </form>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>
+                <a th:href="@{/programs(page=0,
+                                  sort=${sort == 'name,asc' ? 'name,desc' : 'name,asc'},
+                                  search=${search})}">
+                    Название
+                    <i th:classappend="${sort.startsWith('name')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+            <th>
+                <a th:href="@{/programs(page=0,
+                                  sort=${sort == 'type,asc' ? 'type,desc' : 'type,asc'},
+                                  search=${search})}">
+                    Тип
+                    <i th:classappend="${sort.startsWith('type')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+            <th>
+                <a th:href="@{/programs(page=0,
+                                  sort=${sort == 'duration,asc' ? 'duration,desc' : 'duration,asc'},
+                                  search=${search})}">
+                    Длительность
+                    <i th:classappend="${sort.startsWith('duration')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="program : ${programs}">
+            <td th:text="${program.name}"></td>
+            <td th:text="${program.type}"></td>
+            <td th:text="${program.duration}"></td>
+            <td>
+                <a th:href="@{/programs/edit/{id}(id=${program.id})}"
+                   class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                <form th:action="@{/programs/delete/{id}(id=${program.id})}"
+                      method="post"
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <!-- Блок пагинации -->
+    <nav th:if="${programs.totalPages > 1}">
+        <ul class="pagination">
+            <!-- Первая страница -->
+            <li class="page-item" th:classappend="${programs.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/programs(page=0, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+
+            <!-- Предыдущая страница -->
+            <li class="page-item" th:classappend="${programs.number == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/programs(page=${programs.number - 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            <!-- Номера страниц -->
+            <li th:each="i : ${#numbers.sequence(
+                T(java.lang.Math).max(0, programs.number - 2),
+                T(java.lang.Math).min(programs.number + 2, programs.totalPages - 1))}"
+                class="page-item" th:classappend="${i == programs.number} ? 'active'">
+
+                <a class="page-link"
+                   th:href="@{/programs(page=${i}, sort=${sort}, search=${search})}"
+                   th:text="${i + 1}"></a>
+            </li>
+
+            <!-- Следующая страница -->
+            <li class="page-item" th:classappend="${programs.number >= programs.totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/programs(page=${programs.number + 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+
+            <!-- Последняя страница -->
+            <li class="page-item" th:classappend="${programs.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/programs(page=${programs.totalPages - 1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
 </body>
 </html>

@@ -3,6 +3,9 @@ package com.fitness.controller;
 import com.fitness.model.Trainer;
 import com.fitness.service.TrainerService;
 import com.fitness.service.TrainingProgramService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +24,31 @@ public class TrainerController {
     }
 
     @GetMapping
-    public String listTrainers(Model model) {
+    public String listTrainers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "fullName,asc") String sort,
+            @RequestParam(required = false) String search,
+            Model model) {
+
+        String[] sortParams = sort.split(",");
+        Sort.Direction direction = sortParams.length > 1
+                ? Sort.Direction.fromString(sortParams[1])
+                : Sort.Direction.ASC;
+
+        PageRequest pageable = PageRequest.of(
+                page,
+                10,
+                Sort.by(direction, sortParams[0])
+        );
+
+        Page<Trainer> trainers = trainerService.searchTrainers(search, pageable);
+
         model.addAttribute("title", "Тренеры");
-        model.addAttribute("content", "trainers/list"); // Указывает на templates/trainers/list.html
-        model.addAttribute("trainers", trainerService.getAllTrainers());
+        model.addAttribute("content", "trainers/list");
+        model.addAttribute("trainers", trainers);
+        model.addAttribute("sort", sort);
+        model.addAttribute("search", search);
+
         return "layout";
     }
 
