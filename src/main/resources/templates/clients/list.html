@@ -1,43 +1,129 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Клиенты</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body th:fragment="content">
-<h2 class="mb-4">Клиенты</h2>
+<div class="container mt-4">
+    <!-- Заголовок и кнопка -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Клиенты</h2>
+        <a th:href="@{/clients/new}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> Добавить клиента
+        </a>
+    </div>
 
-<a th:href="@{/clients/new}" class="btn btn-primary mb-3">Добавить клиента</a>
+    <!-- Поиск -->
+    <form th:action="@{/clients}" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search"
+                   th:value="${search}"
+                   class="form-control"
+                   placeholder="Поиск по ФИО, телефону или email">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
 
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>ФИО</th>
-        <th>Телефон</th>
-        <th>Email</th>
-        <th>Дата рождения</th>
-        <th>Действия</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="client : ${clients}">
-        <td th:text="${client.fullName}"></td>
-        <td th:text="${client.phone}"></td>
-        <td th:text="${client.email}"></td>
-        <td th:text="${#temporals.format(client.birthDate, 'dd.MM.yyyy')}"></td>
-        <td>
-            <a th:href="@{/clients/edit/{id}(id=${client.id})}"
-               class="btn btn-warning btn-sm">Редактировать</a>
-            <form th:action="@{/clients/delete/{id}(id=${client.id})}"
-                  method="post"
-                  style="display: inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-            </form>
-            <a th:href="@{/clients/{id}/memberships(id=${client.id})}"
-               class="btn btn-info btn-sm">Абонементы</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <!-- Таблица -->
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <!-- Столбец "ФИО" -->
+            <th>
+                <a th:href="@{/clients(page=0,
+                                sort=${sort == 'fullName,asc' ? 'fullName,desc' : 'fullName,asc'},
+                                search=${search})}">
+                    ФИО
+                    <i th:classappend="${sort.startsWith('fullName')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+
+            <!-- Столбец "Телефон" -->
+            <th>
+                <a th:href="@{/clients(page=0,
+                                sort=${sort == 'phone,asc' ? 'phone,desc' : 'phone,asc'},
+                                search=${search})}">
+                    Телефон
+                    <i th:classappend="${sort.startsWith('phone')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+
+            <!-- Столбец "Email" -->
+            <th>
+                <a th:href="@{/clients(page=0,
+                                sort=${sort == 'email,asc' ? 'email,desc' : 'email,asc'},
+                                search=${search})}">
+                    Email
+                    <i th:classappend="${sort.startsWith('email')}
+                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
+                    : ''"></i>
+                </a>
+            </th>
+
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="client : ${clients.content}">
+            <td th:text="${client.fullName}"></td>
+            <td th:text="${client.phone}"></td>
+            <td th:text="${client.email}"></td>
+            <td>
+                <a th:href="@{/clients/edit/{id}(id=${client.id})}"
+                   class="btn btn-warning btn-sm me-2">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form th:action="@{/clients/delete/{id}(id=${client.id})}"
+                      method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Пагинация -->
+    <nav th:if="${clients.totalPages > 1}">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${clients.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/clients(page=0, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${clients.number == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/clients(page=${clients.number-1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(
+                Math.max(0, clients.number-2),
+                Math.min(clients.number+2, clients.totalPages-1))}"
+                class="page-item" th:classappend="${i == clients.number} ? 'active'">
+                <a class="page-link" th:href="@{/clients(page=${i}, sort=${sort}, search=${search})}"
+                   th:text="${i+1}"></a>
+            </li>
+
+            <li class="page-item" th:classappend="${clients.number >= clients.totalPages-1} ? 'disabled'">
+                <a class="page-link" th:href="@{/clients(page=${clients.number+1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${clients.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/clients(page=${clients.totalPages-1}, sort=${sort}, search=${search})}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
 </body>
 </html>

@@ -5,6 +5,9 @@ import com.fitness.model.Membership;
 import com.fitness.repository.ClientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +42,18 @@ public class ClientService {
                 .filter(client -> client.getMemberships().stream()
                         .anyMatch(Membership::isActive))
                 .collect(Collectors.toList());
+    }
+
+    public Page<Client> searchClients(String search, Pageable pageable) {
+        Specification<Client> spec = (root, query, cb) -> {
+            if (search == null || search.isEmpty()) return null;
+            return cb.or(
+                    cb.like(cb.lower(root.get("fullName")), "%" + search.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("phone")), "%" + search.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("email")), "%" + search.toLowerCase() + "%")
+            );
+        };
+        return clientRepository.findAll(spec, pageable);
     }
 
     @Transactional
