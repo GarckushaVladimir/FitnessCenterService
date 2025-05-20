@@ -28,6 +28,7 @@ public class ClientController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "fullName,asc") String sort,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String membershipStatus,
             Model model) {
 
         String[] sortParams = sort.split(",");
@@ -42,13 +43,14 @@ public class ClientController {
                 Sort.by(direction, sortField)
         );
 
-        Page<Client> clients = clientService.searchClients(search, pageable);
+        Page<Client> clients = clientService.searchClients(search, membershipStatus, pageable);
 
         model.addAttribute("title", "Клиенты");
         model.addAttribute("content", "clients/list");
         model.addAttribute("clients", clients);
         model.addAttribute("sort", sort);
         model.addAttribute("search", search);
+        model.addAttribute("membershipStatus", membershipStatus);
 
         return "layout";
     }

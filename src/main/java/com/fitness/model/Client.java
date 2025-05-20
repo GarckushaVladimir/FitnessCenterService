@@ -69,6 +69,7 @@ public class Client {
     }
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("endDate DESC")
     private List<Membership> memberships = new ArrayList<>();
 
     @ManyToMany

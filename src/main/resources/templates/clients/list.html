@@ -25,7 +25,35 @@
             </button>
         </div>
     </form>
+    <div class="mb-4">
+        <form th:action="@{/clients}" method="get">
+            <input type="hidden" name="search" th:value="${search}">
+            <input type="hidden" name="sort" th:value="${sort}">
 
+            <div class="btn-group" role="group">
+                <a th:href="@{/clients(membershipStatus=null)}"
+                   class="btn btn-outline-secondary"
+                   th:classappend="${#strings.isEmpty(membershipStatus)} ? 'active'">
+                    Все
+                </a>
+                <a th:href="@{/clients(membershipStatus='active')}"
+                   class="btn btn-outline-success"
+                   th:classappend="${membershipStatus == 'active'} ? 'active'">
+                    Активные
+                </a>
+                <a th:href="@{/clients(membershipStatus='inactive')}"
+                   class="btn btn-outline-danger"
+                   th:classappend="${membershipStatus == 'inactive'} ? 'active'">
+                    Неактивные
+                </a>
+                <a th:href="@{/clients(membershipStatus='expiring')}"
+                   class="btn btn-outline-warning"
+                   th:classappend="${membershipStatus == 'expiring'} ? 'active'">
+                    Истекают
+                </a>
+            </div>
+        </form>
+    </div>
     <!-- Таблица -->
     <table class="table table-striped">
         <thead>
@@ -56,6 +84,8 @@
                     : ''"></i>
                 </a>
             </th>
+            <th>Период абонемента</th>
+            <th>Статус</th>
 
             <th>Действия</th>
         </tr>
@@ -66,12 +96,37 @@
             <td th:text="${client.phone}"></td>
             <td th:text="${client.email}"></td>
             <td>
+                <!-- Период действия абонемента -->
+                <div th:if="${client.memberships.size() > 0}">
+                    <span th:text="${#temporals.format(client.memberships[0].startDate, 'dd.MM.yy')}"></span> -
+                    <span th:text="${#temporals.format(client.memberships[0].endDate, 'dd.MM.yy')}"></span>
+                </div>
+                <span th:if="${client.memberships.isEmpty()}" class="text-muted">Нет абонемента</span>
+            </td>
+            <td>
+                <!-- Статус в виде кружка -->
+                <div th:if="${client.memberships.size() > 0}">
+            <span th:classappend="${client.memberships[0].active} ? 'bg-success' : 'bg-secondary'"
+                  class="badge rounded-circle"
+                  style="width: 15px; height: 15px; display: inline-block;">
+            </span>
+                </div>
+            </td>
+            <td>
+                <!-- Новая кнопка -->
+                <a th:href="@{/clients/{id}/memberships(id=${client.id})}"
+                   class="btn btn-info btn-sm me-2">
+                    <i class="bi bi-credit-card"></i>
+                </a>
+
+                <!-- Существующие кнопки -->
                 <a th:href="@{/clients/edit/{id}(id=${client.id})}"
                    class="btn btn-warning btn-sm me-2">
                     <i class="bi bi-pencil"></i>
                 </a>
                 <form th:action="@{/clients/delete/{id}(id=${client.id})}"
-                      method="post" style="display: inline;">
+                      method="post"
+                      style="display: inline;">
                     <button type="submit" class="btn btn-danger btn-sm">
                         <i class="bi bi-trash"></i>
                     </button>
