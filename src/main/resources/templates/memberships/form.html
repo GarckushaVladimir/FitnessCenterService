@@ -26,7 +26,11 @@
 
             <div class="col-md-4">
                 <label class="form-label">Дата окончания</label>
-                <input type="date" class="form-control" th:field="*{endDate}" required>
+                <input type="date"
+                       class="form-control"
+                       th:field="*{endDate}"
+                       min="${T(java.time.LocalDate).now().plusDays(1).format(${#temporals.format('yyyy-MM-dd')})}"
+                       required>
             </div>
 
             <div class="col-md-4">

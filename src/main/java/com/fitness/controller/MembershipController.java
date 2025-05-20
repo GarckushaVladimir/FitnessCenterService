@@ -7,6 +7,7 @@ import com.fitness.service.MembershipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
@@ -38,11 +39,17 @@ public class MembershipController {
     @PostMapping("/save")
     public String saveMembership(
             @ModelAttribute Membership membership,
-            @RequestParam("clientId") Long clientId
-    ) {
+            @RequestParam("clientId") Long clientId) { // Получаем clientId из формы
+
+        // Получаем клиента из базы данных
         Client client = clientService.getClientById(clientId);
+
+        // Устанавливаем клиента для абонемента
         membership.setClient(client);
+
+        // Сохраняем абонемент
         membershipService.saveMembership(membership);
+
         return "redirect:/clients/" + clientId + "/memberships";
     }
 

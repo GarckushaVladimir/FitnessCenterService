@@ -31,8 +31,21 @@
             <td th:text="${membership.type}"></td>
             <td th:text="${#numbers.formatDecimal(membership.price, 1, 2)} + ' ₽'"></td>
             <td>
-                <span th:if="${membership.isActive}" class="badge bg-success">Активен</span>
-                <span th:unless="${membership.isActive}" class="badge bg-secondary">Истек</span>
+                <div th:if="${not #lists.isEmpty(client.memberships)}">
+                    <!-- Основной статус -->
+                    <span th:classappend="${client.memberships[0].active} ? 'badge bg-success' : 'badge bg-secondary'"
+                          class="badge">
+            <span th:text="${client.memberships[0].active} ? 'Активен' : 'Истек'"></span>
+        </span>
+
+                    <!-- Индикатор "Истекает" (если до конца менее 7 дней) -->
+                    <span th:if="${client.memberships[0].active and
+                      client.memberships[0].endDate.isBefore(LocalDate.now().plusDays(7))}"
+                          class="badge bg-warning ms-2">
+            Истекает
+        </span>
+                </div>
+                <span th:if="${#lists.isEmpty(client.memberships)}" class="text-muted">Нет абонемента</span>
             </td>
             <td>
                 <form th:action="@{/memberships/delete/{id}(id=${membership.id})}" method="post">

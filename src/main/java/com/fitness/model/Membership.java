@@ -38,7 +38,8 @@ public class Membership {
     @PrePersist
     @PreUpdate
     public void calculateIsActive() {
-        this.isActive = LocalDate.now().isAfter(this.endDate);
+        LocalDate today = LocalDate.now();
+        this.isActive = !today.isAfter(endDate) && !today.isBefore(startDate);
     }
 
     public Long getId() {

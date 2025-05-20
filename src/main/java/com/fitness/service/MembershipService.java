@@ -28,6 +28,8 @@ public class MembershipService {
 
     @Transactional
     public void saveMembership(Membership membership) {
+        // Пересчитываем статус вручную перед сохранением
+        membership.calculateIsActive();
         membershipRepository.save(membership);
     }
 
