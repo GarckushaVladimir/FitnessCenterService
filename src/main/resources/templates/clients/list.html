@@ -43,16 +43,7 @@
             </th>
 
             <!-- Столбец "Телефон" -->
-            <th>
-                <a th:href="@{/clients(page=0,
-                                sort=${sort == 'phone,asc' ? 'phone,desc' : 'phone,asc'},
-                                search=${search})}">
-                    Телефон
-                    <i th:classappend="${sort.startsWith('phone')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
+            <th>Телефон</th>
 
             <!-- Столбец "Email" -->
             <th>
