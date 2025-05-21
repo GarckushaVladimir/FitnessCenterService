@@ -29,6 +29,8 @@ public class TrainerController {
             @RequestParam(defaultValue = "fullName,asc") String sort,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long program,
+            @RequestParam(required = false) Integer minExp,
+            @RequestParam(required = false) Integer maxExp,
             Model model) {
 
         String[] sortParams = sort.split(",");
@@ -42,7 +44,7 @@ public class TrainerController {
                 Sort.by(direction, sortParams[0])
         );
 
-        Page<Trainer> trainers = trainerService.searchTrainers(search, program, pageable);
+        Page<Trainer> trainers = trainerService.searchTrainers(search, program, minExp, maxExp, pageable);
 
         model.addAttribute("title", "Тренеры");
         model.addAttribute("content", "trainers/list");
@@ -51,6 +53,8 @@ public class TrainerController {
         model.addAttribute("search", search);
         model.addAttribute("allPrograms", programService.getAllPrograms());
         model.addAttribute("program", program);
+        model.addAttribute("minExp", minExp);
+        model.addAttribute("maxExp", maxExp);
 
         return "layout";
     }

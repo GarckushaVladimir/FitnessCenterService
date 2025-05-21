@@ -9,28 +9,40 @@
         </a>
     </div>
 
+    <!-- Добавьте в форму поиска -->
     <form th:action="@{/trainers}" method="get" class="mb-4">
         <div class="row g-3">
             <!-- Поиск по имени -->
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input type="text" name="search" th:value="${search}"
                        class="form-control" placeholder="Поиск по ФИО">
             </div>
 
             <!-- Фильтр по программе -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <select name="program" class="form-select">
                     <option value="">Все программы</option>
                     <option th:each="program : ${allPrograms}"
                             th:value="${program.id}"
                             th:text="${program.name}"
-                            th:selected="${program != null && program.id == programParam}">
+                            th:selected="${program.id == programParam}">
                     </option>
                 </select>
             </div>
 
+            <!-- Ползунок для стажа -->
+            <div class="col-md-4">
+                <label>Стаж:
+                    <span id="minExpDisplay" th:text="${minExp ?: 0}"></span> -
+                    <span id="maxExpDisplay" th:text="${maxExp ?: 30}"></span> лет
+                </label>
+                <div id="experienceSlider"></div>
+                <input type="hidden" id="minExp" name="minExp" th:value="${minExp}">
+                <input type="hidden" id="maxExp" name="maxExp" th:value="${maxExp}">
+            </div>
+
             <!-- Кнопка поиска -->
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search"></i>
                 </button>
@@ -113,5 +125,35 @@
         </ul>
     </nav>
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('experienceSlider');
+        const minExpInput = document.getElementById('minExp');
+        const maxExpInput = document.getElementById('maxExp');
+        const minDisplay = document.getElementById('minExpDisplay');
+        const maxDisplay = document.getElementById('maxExpDisplay');
+
+        noUiSlider.create(slider, {
+            start: [minExpInput.value || 0, maxExpInput.value || 30],
+            connect: true,
+            range: {
+                'min': 0,
+                'max': 30
+            },
+            step: 1
+        });
+
+        slider.noUiSlider.on('update', function(values) {
+            const [min, max] = values.map(Math.round);
+            minDisplay.textContent = min;
+            maxDisplay.textContent = max;
+            minExpInput.value = min;
+            maxExpInput.value = max;
+        });
+    });
+</script>
 </body>
 </html>

@@ -49,7 +49,8 @@ public class TrainerService {
         return trainers;
     }
 
-    public Page<Trainer> searchTrainers(String search, Long programId, Pageable pageable) {
+    public Page<Trainer> searchTrainers(String search, Long programId,Integer minExp,
+                                        Integer maxExp, Pageable pageable) {
         Specification<Trainer> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -62,6 +63,13 @@ public class TrainerService {
             if (programId != null) {
                 Join<Trainer, TrainingProgram> programJoin = root.join("programs");
                 predicates.add(cb.equal(programJoin.get("id"), programId));
+            }
+            // Фильтр по стажу
+            if (minExp != null) {
+                predicates.add(cb.ge(root.get("experience"), minExp)); // ge = greater or equal
+            }
+            if (maxExp != null) {
+                predicates.add(cb.le(root.get("experience"), maxExp)); // le = less or equal
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
