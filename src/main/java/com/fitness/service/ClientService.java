@@ -54,26 +54,30 @@ public class ClientService {
     }
 
     public Page<Client> searchClients(String search, String membershipStatus, Pageable pageable) {
-        // 1. Создаем спецификацию с учетом фильтров
-        Specification<Client> spec = (root, query, cb) -> {
-            query.distinct(true); // Убираем дубликаты
+        Specification<Client> spec = buildSpecification(search, membershipStatus);
+        Page<Client> page = clientRepository.findAll(spec, pageable);
+
+        return postProcessPage(page);
+    }
+
+    private Specification<Client> buildSpecification(String search, String membershipStatus) {
+        return (root, query, cb) -> {
+//            query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
-            // Фильтр по поиску
             if (StringUtils.hasText(search)) {
                 String pattern = "%" + search.toLowerCase() + "%";
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("fullName")), pattern),
+                        cb.like(cb.lower(root.get("fullName")), pattern), // Используется Java-поле fullName
                         cb.like(cb.lower(root.get("phone")), pattern),
                         cb.like(cb.lower(root.get("email")), pattern)
                 ));
             }
 
-            // Фильтр по статусу абонемента
             if (StringUtils.hasText(membershipStatus)) {
                 Join<Client, Membership> membershipJoin = root.join("memberships", JoinType.LEFT);
-
                 LocalDate today = LocalDate.now();
+
                 switch (membershipStatus.toLowerCase()) {
                     case "active":
                         predicates.add(cb.and(
@@ -91,29 +95,29 @@ public class ClientService {
                 }
             }
 
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
 
-        // 2. Получаем страницу клиентов
-        Page<Client> page = clientRepository.findAll(spec, pageable);
-
-        // 3. Загружаем абонементы для полученных клиентов
+    private Page<Client> postProcessPage(Page<Client> page) {
         if (!page.getContent().isEmpty()) {
             List<Long> clientIds = page.getContent().stream()
                     .map(Client::getId)
                     .collect(Collectors.toList());
 
             List<Client> clientsWithMemberships = clientRepository.findAllWithMemberships(clientIds);
-
-            // Сортируем абонементы по дате окончания
             clientsWithMemberships.forEach(client ->
                     client.getMemberships().sort(
                             Comparator.comparing(Membership::getEndDate).reversed()
-                    ));
+                    )
+            );
 
-            return new PageImpl<>(clientsWithMemberships, pageable, page.getTotalElements());
+            return new PageImpl<>(
+                    clientsWithMemberships,
+                    page.getPageable(),
+                    page.getTotalElements()
+            );
         }
-
         return page;
     }
 

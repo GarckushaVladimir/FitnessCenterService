@@ -25,36 +25,9 @@
     <table class="table table-striped">
         <thead>
         <tr>
-            <th>
-                <a th:href="@{/programs(page=0,
-                                  sort=${sort == 'name,asc' ? 'name,desc' : 'name,asc'},
-                                  search=${search})}">
-                    Название
-                    <i th:classappend="${sort.startsWith('name')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
-            <th>
-                <a th:href="@{/programs(page=0,
-                                  sort=${sort == 'type,asc' ? 'type,desc' : 'type,asc'},
-                                  search=${search})}">
-                    Тип
-                    <i th:classappend="${sort.startsWith('type')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
-            <th>
-                <a th:href="@{/programs(page=0,
-                                  sort=${sort == 'duration,asc' ? 'duration,desc' : 'duration,asc'},
-                                  search=${search})}">
-                    Длительность
-                    <i th:classappend="${sort.startsWith('duration')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
+            <th>Название</th>
+            <th>Тип</th>
+            <th>Длительность</th>
             <th>Действия</th>
         </tr>
         </thead>

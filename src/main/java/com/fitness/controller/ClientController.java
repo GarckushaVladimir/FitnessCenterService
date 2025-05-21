@@ -31,17 +31,15 @@ public class ClientController {
             @RequestParam(required = false) String membershipStatus,
             Model model) {
 
+        // Разбиваем параметр сортировки
         String[] sortParams = sort.split(",");
         String sortField = sortParams[0];
         Sort.Direction direction = sortParams.length > 1
                 ? Sort.Direction.fromString(sortParams[1])
                 : Sort.Direction.ASC;
 
-        PageRequest pageable = PageRequest.of(
-                page,
-                10,
-                Sort.by(direction, sortField)
-        );
+        // Создаем Pageable с сортировкой
+        PageRequest pageable = PageRequest.of(page, 10, Sort.by(direction, sortField));
 
         Page<Client> clients = clientService.searchClients(search, membershipStatus, pageable);
 

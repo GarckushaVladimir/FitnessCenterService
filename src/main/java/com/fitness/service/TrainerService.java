@@ -3,12 +3,16 @@ package com.fitness.service;
 import com.fitness.model.Trainer;
 import com.fitness.model.TrainingProgram;
 import com.fitness.repository.TrainerRepository;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,11 +49,24 @@ public class TrainerService {
         return trainers;
     }
 
-    public Page<Trainer> searchTrainers(String search, Pageable pageable) {
+    public Page<Trainer> searchTrainers(String search, Long programId, Pageable pageable) {
         Specification<Trainer> spec = (root, query, cb) -> {
-            if (search == null || search.isEmpty()) return null;
-            return cb.like(cb.lower(root.get("fullName")), "%" + search.toLowerCase() + "%");
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Поиск по имени
+            if (StringUtils.hasText(search)) {
+                predicates.add(cb.like(cb.lower(root.get("fullName")), "%" + search.toLowerCase() + "%"));
+            }
+
+            // Фильтр по программе
+            if (programId != null) {
+                Join<Trainer, TrainingProgram> programJoin = root.join("programs");
+                predicates.add(cb.equal(programJoin.get("id"), programId));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
+
         return trainerRepository.findAll(spec, pageable);
     }
 

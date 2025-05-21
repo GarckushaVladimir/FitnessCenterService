@@ -59,31 +59,13 @@
         <thead>
         <tr>
             <!-- Столбец "ФИО" -->
-            <th>
-                <a th:href="@{/clients(page=0,
-                                sort=${sort == 'fullName,asc' ? 'fullName,desc' : 'fullName,asc'},
-                                search=${search})}">
-                    ФИО
-                    <i th:classappend="${sort.startsWith('fullName')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
+            <th>ФИО</th>
 
             <!-- Столбец "Телефон" -->
             <th>Телефон</th>
 
             <!-- Столбец "Email" -->
-            <th>
-                <a th:href="@{/clients(page=0,
-                                sort=${sort == 'email,asc' ? 'email,desc' : 'email,asc'},
-                                search=${search})}">
-                    Email
-                    <i th:classappend="${sort.startsWith('email')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
+            <th>Email</th>
             <th>Период абонемента</th>
             <th>Статус</th>
 

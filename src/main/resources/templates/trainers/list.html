@@ -10,41 +10,39 @@
     </div>
 
     <form th:action="@{/trainers}" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text"
-                   name="search"
-                   th:value="${search}"
-                   class="form-control"
-                   placeholder="Поиск по ФИО">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search"></i>
-            </button>
+        <div class="row g-3">
+            <!-- Поиск по имени -->
+            <div class="col-md-6">
+                <input type="text" name="search" th:value="${search}"
+                       class="form-control" placeholder="Поиск по ФИО">
+            </div>
+
+            <!-- Фильтр по программе -->
+            <div class="col-md-4">
+                <select name="program" class="form-select">
+                    <option value="">Все программы</option>
+                    <option th:each="program : ${allPrograms}"
+                            th:value="${program.id}"
+                            th:text="${program.name}"
+                            th:selected="${program != null && program.id == programParam}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Кнопка поиска -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
         </div>
     </form>
 
     <table class="table table-striped">
         <thead>
         <tr>
-            <th>
-                <a th:href="@{/trainers(page=0,
-                                  sort=${sort == 'fullName,asc' ? 'fullName,desc' : 'fullName,asc'},
-                                  search=${search})}">
-                    ФИО
-                    <i th:classappend="${sort.startsWith('fullName')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
-            <th>
-                <a th:href="@{/trainers(page=0,
-                                  sort=${sort == 'experience,asc' ? 'experience,desc' : 'experience,asc'},
-                                  search=${search})}">
-                    Стаж
-                    <i th:classappend="${sort.startsWith('experience')}
-                    ? (${sort.endsWith('asc')} ? 'bi bi-sort-up' : 'bi bi-sort-down')
-                    : ''"></i>
-                </a>
-            </th>
+            <th>ФИО</th>
+            <th>Стаж</th>
             <th>Программы</th>
             <th>Действия</th>
         </tr>
