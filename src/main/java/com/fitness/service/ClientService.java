@@ -39,11 +39,18 @@ public class ClientService {
                 .orElseThrow(() -> new RuntimeException("Client not found"));
     }
 
-    public List<Client> getAllClientsWithVisits() {
-        List<Client> clients = clientRepository.findAll();
+    public Page<Client> getClientsWithVisits(Pageable pageable) {
+        // Получаем страницу клиентов
+        Page<Client> page = clientRepository.findAll(pageable);
+
         // Инициализируем посещения для каждого клиента
-        clients.forEach(client -> client.getVisits().size());
-        return clients;
+        List<Long> clientIds = page.getContent().stream()
+                .map(Client::getId)
+                .collect(Collectors.toList());
+
+        List<Client> clientsWithVisits = clientRepository.findAllWithVisits(clientIds);
+
+        return new PageImpl<>(clientsWithVisits, pageable, page.getTotalElements());
     }
 
     public List<Client> getClientsWithActiveMemberships() {

@@ -7,6 +7,9 @@ import com.fitness.model.Visit;
 import com.fitness.service.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,24 +34,27 @@ public class VisitController {
     }
 
     @GetMapping
-    public String listAllVisits(Model model) {
-        List<Client> clients = clientService.getAllClientsWithVisits();
+    public String listAllVisits(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
 
-        // Инициализация связанных сущностей
-        clients.forEach(client ->
+        // Пагинация для клиентов
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
+        Page<Client> clientsPage = clientService.getClientsWithVisits(pageable);
+
+        // Инициализация связанных сущностей для каждого посещения
+        clientsPage.getContent().forEach(client ->
                 client.getVisits().forEach(visit -> {
-                    if(visit.getTrainer() != null) {
-                        Hibernate.initialize(visit.getTrainer()); // Явная инициализация тренера
-                    }
-                    if(visit.getProgram() != null) {
-                        Hibernate.initialize(visit.getProgram()); // Инициализация программы
-                    }
+                    Hibernate.initialize(visit.getTrainer());
+                    Hibernate.initialize(visit.getProgram());
                 })
         );
 
         model.addAttribute("title", "Все посещения");
         model.addAttribute("content", "visits/all");
-        model.addAttribute("clients", clients);
+        model.addAttribute("clients", clientsPage.getContent());
+        model.addAttribute("page", clientsPage);
         return "layout";
     }
 

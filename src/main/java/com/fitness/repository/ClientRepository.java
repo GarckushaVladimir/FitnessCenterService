@@ -15,4 +15,6 @@ public interface ClientRepository extends JpaRepository<Client, Long>, JpaSpecif
     List<Client> findAllWithMemberships(@Param("ids") List<Long> ids);
     @Query("SELECT c FROM Client c ORDER BY FUNCTION('SPLIT_PART', c.fullName, ' ', 1) ASC")
     List<Client> findAllSortedByLastName();
+    @Query("SELECT DISTINCT c FROM Client c LEFT JOIN FETCH c.visits WHERE c.id IN :ids")
+    List<Client> findAllWithVisits(@Param("ids") List<Long> clientIds);
 }
