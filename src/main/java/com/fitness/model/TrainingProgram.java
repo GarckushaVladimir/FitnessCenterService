@@ -72,4 +72,14 @@ public class TrainingProgram {
     public void setClients(List<Client> clients) {
         this.clients = clients;
     }
+
+    @Override
+    public String toString() {
+        return "TrainingProgram{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", duration=" + duration +
+                '}';
+    }
 }

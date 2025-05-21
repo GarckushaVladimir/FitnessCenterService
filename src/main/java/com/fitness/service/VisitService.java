@@ -1,11 +1,14 @@
 package com.fitness.service;
 
+import com.fitness.model.Client;
 import com.fitness.model.Membership;
 import com.fitness.model.Visit;
 import com.fitness.repository.VisitRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,38 +32,36 @@ public class VisitService {
 
     @Transactional
     public Visit saveVisit(Visit visit) {
-        // Проверка активного абонемента
-        boolean hasActiveMembership = visit.getClient().getMemberships().stream()
-                .anyMatch(Membership::isActive);
+        Client client = visit.getClient();
+        LocalDateTime visitDate = visit.getVisitDate();
 
-        if (!hasActiveMembership) {
-            throw new IllegalStateException("У клиента нет активного абонемента");
+        // 1. Проверяем, был ли у клиента активный абонемент НА ДАТУ ПОСЕЩЕНИЯ
+        boolean hasValidMembership = client.getMemberships().stream()
+                .anyMatch(m ->
+                        !visitDate.toLocalDate().isBefore(m.getStartDate()) &&
+                                !visitDate.toLocalDate().isAfter(m.getEndDate())
+                );
+
+        // 2. Если абонемента нет или он не покрывает дату посещения
+        if (!hasValidMembership) {
+            throw new IllegalStateException(
+                    "На дату " + visitDate.toLocalDate() +
+                            " у клиента нет действующего абонемента"
+            );
         }
 
-        // Проверка программы и тренера
+        // Остальные проверки (тренер и программа)
         if (visit.getProgram() != null) {
-            // Если программа выбрана, тренер обязателен
             if (visit.getTrainer() == null) {
-                throw new IllegalArgumentException("Для программы '"
-                        + visit.getProgram().getName()
-                        + "' требуется тренер");
+                throw new IllegalArgumentException("Для программы требуется тренер");
             }
 
-            // Проверяем, что тренер имеет доступ к программе
             boolean isTrainerValid = visit.getTrainer().getPrograms().stream()
                     .anyMatch(p -> p.getId().equals(visit.getProgram().getId()));
 
             if (!isTrainerValid) {
-                throw new IllegalArgumentException("Тренер '"
-                        + visit.getTrainer().getFullName()
-                        + "' не сертифицирован для программы '"
-                        + visit.getProgram().getName() + "'");
+                throw new IllegalArgumentException("Тренер не сертифицирован для программы");
             }
-        }
-
-        // Очистка тренера, если передан некорректный ID
-        if (visit.getTrainer() != null && visit.getTrainer().getId() == null) {
-            visit.setTrainer(null);
         }
 
         return visitRepository.save(visit);

@@ -69,28 +69,43 @@ public class VisitController {
 
     @GetMapping("/new/{clientId}")
     public String showForm(@PathVariable Long clientId, Model model) {
-        Client client = clientService.getClientById(clientId); // Получаем клиента
+        Client client = clientService.getClientById(clientId);
+
+        // Явная инициализация связанных данных
+        Hibernate.initialize(client.getMemberships());
+
         model.addAttribute("trainers", trainerService.getAllTrainers());
         model.addAttribute("visit", new Visit());
-        model.addAttribute("client", client); // Добавляем клиента в модель
+        model.addAttribute("client", client);
         model.addAttribute("programs", programService.getAllPrograms());
-        model.addAttribute("title", "Новое посещение");
-        model.addAttribute("content", "visits/form");
-        return "layout";
+
+        return "visits/form";
     }
 
     @PostMapping("/save")
     public String saveVisit(
             @ModelAttribute Visit visit,
-            @RequestParam("clientId") Long clientId
-    ) {
-        Client client = clientService.getClientById(clientId);
-        visit.setClient(client);
+            @RequestParam("clientId") Long clientId,
+            Model model) {
 
-        // Тренер будет привязан автоматически через th:field
-        visitService.saveVisit(visit);
+        try {
+            Client client = clientService.getClientById(clientId);
+            visit.setClient(client);
+            visitService.saveVisit(visit);
+            return "redirect:/visits/client/" + clientId;
 
-        return "redirect:/visits/client/" + clientId;
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            // Добавляем сообщение об ошибке в модель
+            model.addAttribute("errorMessage", e.getMessage());
+
+            // Возвращаем на форму с сохранением введенных данных
+            model.addAttribute("visit", visit);
+            model.addAttribute("client", clientService.getClientById(clientId));
+            model.addAttribute("programs", programService.getAllPrograms());
+            model.addAttribute("trainers", trainerService.getAllTrainers());
+
+            return "visits/form";
+        }
     }
 
     @PostMapping("/delete/{id}")
