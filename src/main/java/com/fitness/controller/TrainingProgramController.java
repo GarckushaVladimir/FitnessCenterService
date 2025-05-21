@@ -25,6 +25,9 @@ public class TrainingProgramController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "name,asc") String sort,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String type, // Новый параметр
+            @RequestParam(required = false) Integer minDuration, // Новые параметры
+            @RequestParam(required = false) Integer maxDuration,
             Model model) {
 
         String[] sortParams = sort.split(",");
@@ -38,13 +41,23 @@ public class TrainingProgramController {
                 Sort.by(direction, sortParams[0])
         );
 
-        Page<TrainingProgram> programs = programService.searchPrograms(search, pageable);
+        Page<TrainingProgram> programs = programService.searchPrograms(
+                search,
+                type,
+                minDuration,
+                maxDuration,
+                pageable
+        );
 
         model.addAttribute("title", "Программы");
         model.addAttribute("content", "programs/list");
         model.addAttribute("programs", programs);
         model.addAttribute("sort", sort);
         model.addAttribute("search", search);
+        model.addAttribute("allTypes", programService.getAllProgramTypes());
+        model.addAttribute("type", type);
+        model.addAttribute("minDuration", minDuration);
+        model.addAttribute("maxDuration", maxDuration);
 
         return "layout";
     }
