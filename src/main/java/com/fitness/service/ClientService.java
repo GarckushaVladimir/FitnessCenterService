@@ -2,6 +2,7 @@ package com.fitness.service;
 
 import com.fitness.model.Client;
 import com.fitness.model.Membership;
+import com.fitness.model.Visit;
 import com.fitness.repository.ClientRepository;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -25,9 +26,11 @@ import java.util.stream.Collectors;
 //@RequiredArgsConstructor
 public class ClientService {
     private final ClientRepository clientRepository;
+    private final VisitService visitService;
 
-    public ClientService(ClientRepository clientRepository) {
+    public ClientService(ClientRepository clientRepository, VisitService visitService) {
         this.clientRepository = clientRepository;
+        this.visitService = visitService;
     }
 
     public List<Client> getAllClients() {
@@ -51,6 +54,47 @@ public class ClientService {
         List<Client> clientsWithVisits = clientRepository.findAllWithVisits(clientIds);
 
         return new PageImpl<>(clientsWithVisits, pageable, page.getTotalElements());
+    }
+
+    public List<Client> getAllClientsWithFilteredVisits(
+            LocalDate startDate,
+            LocalDate endDate,
+            String programName,
+            String trainerName,
+            Integer minDuration,
+            Integer maxDuration) {
+
+        List<Client> clients = clientRepository.findAll();
+
+        boolean hasFilters = startDate != null || endDate != null
+                || programName != null || trainerName != null
+                || minDuration != null || maxDuration != null;
+
+        clients.forEach(client -> {
+            List<Visit> filteredVisits = visitService.searchVisits(
+                            client.getId(),
+                            startDate,
+                            endDate,
+                            programName,
+                            trainerName,
+                            minDuration,
+                            maxDuration
+                    ).stream()
+                    .filter(v -> v.getClient().getId().equals(client.getId()))
+                    .collect(Collectors.toList());
+
+            client.setVisits(filteredVisits);
+        });
+
+        // Если есть фильтры — оставляем только клиентов с посещениями
+        if (hasFilters) {
+            return clients.stream()
+                    .filter(client -> !client.getVisits().isEmpty())
+                    .collect(Collectors.toList());
+        }
+
+        // Без фильтров — возвращаем всех клиентов
+        return clients;
     }
 
     public List<Client> getClientsWithActiveMemberships() {

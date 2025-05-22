@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
     <title>Все посещения</title>
     <style>
         .visit-details-link {
@@ -10,14 +11,81 @@
         .visit-details-link:hover {
             transform: translateX(5px);
         }
+
     </style>
 </head>
 <body th:fragment="content">
 <div class="container mt-4">
     <h2 class="mb-4">Все посещения</h2>
+    <form th:action="@{/visits}" method="get" class="mb-4 border p-3 rounded">
+        <div class="row g-3">
+            <!-- Дата начала -->
+            <div class="col-md-2">
+                <label>С даты</label>
+                <input type="date" name="startDate"
+                       th:value="${startDate}"
+                       class="form-control">
+            </div>
 
+            <!-- Дата окончания -->
+            <div class="col-md-2">
+                <label>По дату</label>
+                <input type="date" name="endDate"
+                       th:value="${endDate}"
+                       class="form-control">
+            </div>
+
+            <!-- Программа -->
+            <div class="col-md-2">
+                <label>Программа</label>
+                <select name="programName" class="form-select">
+                    <option value="">Все</option>
+                    <option th:each="p : ${allPrograms}"
+                            th:value="${p.name}"
+                            th:text="${p.name}"
+                            th:selected="${programName == p.name}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Тренер -->
+            <div class="col-md-2">
+                <label>Тренер</label>
+                <select name="trainerName" class="form-select">
+                    <option value="">Все</option>
+                    <option th:each="t : ${allTrainers}"
+                            th:value="${t.fullName}"
+                            th:text="${t.fullName}"
+                            th:selected="${trainerName == t.fullName}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Ползунок длительности -->
+            <div class="col-md-3">
+                <div class="mb-2">
+                    <label>Длительность:
+                        <span id="durationValue"
+                              th:text="'от ' + (${minDuration} ?: 15) + ' до ' + (${maxDuration} ?: 180)">
+            </span> мин
+                    </label>
+                </div>
+                <div id="durationSlider"></div>
+                <input type="hidden" id="minDuration" name="minDuration" th:value="${minDuration}">
+                <input type="hidden" id="maxDuration" name="maxDuration" th:value="${maxDuration}">
+            </div>
+
+            <!-- Кнопки -->
+            <div class="col-md-1 align-self-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
     <div class="accordion" id="visitsAccordion">
-        <div th:each="client : ${clients}" class="accordion-item">
+        <div th:each="client : ${clients}" class="accordion-item"
+             th:if="${not #lists.isEmpty(client.visits)} or ${not hasFilters}">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed"
                         type="button"
@@ -34,49 +102,54 @@
                  class="accordion-collapse collapse"
                  data-bs-parent="#visitsAccordion">
                 <div class="accordion-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>История посещений</h5>
-                        <a th:href="@{/visits/client/{id}(id=${client.id})}"
-                           class="btn btn-primary btn-sm visit-details-link">
-                            <i class="bi bi-arrow-right-circle me-2"></i>
-                            Подробная статистика
-                        </a>
-                    </div>
-
-                    <table class="table table-hover table-sm">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Дата</th>
-                            <th>Время</th>
-                            <th>Программа</th>
-                            <th>Тренер</th>
-                            <th>Длительность</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="visit : ${client.visits}">
-                            <td th:text="${#temporals.format(visit.visitDate, 'dd.MM.yyyy')}"></td>
-                            <td th:text="${#temporals.format(visit.visitDate, 'HH:mm')}"></td>
-                            <td>
+                    <div th:if="${not client.visits.isEmpty()}">
+                        <!-- Секция с посещениями -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>История посещений</h5>
+                            <a th:href="@{/visits/client/{id}(id=${client.id})}"
+                               class="btn btn-primary btn-sm visit-details-link">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                Подробная статистика
+                            </a>
+                        </div>
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Дата</th>
+                                <th>Время</th>
+                                <th>Программа</th>
+                                <th>Тренер</th>
+                                <th>Длительность</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="visit : ${client.visits}">
+                                <td th:text="${#temporals.format(visit.visitDate, 'dd.MM.yyyy')}"></td>
+                                <td th:text="${#temporals.format(visit.visitDate, 'HH:mm')}"></td>
+                                <td>
                                     <span th:text="${visit.program?.name} ?: 'Без программы'"
                                           class="badge bg-info"></span>
-                            </td>
-                            <td th:text="${visit.trainer?.fullName} ?: 'Не указан'"></td>
-                            <td>
+                                </td>
+                                <td th:text="${visit.trainer?.fullName} ?: 'Не указан'"></td>
+                                <td>
                                     <span th:text="${visit.program?.duration}"
                                           class="badge bg-secondary">
                                     </span> мин
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${client.visits.isEmpty()}" class="text-muted">
+                        Нет посещений, соответствующих фильтрам.
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <!-- Пагинация -->
-<div class="mt-4" th:if="${page.totalPages > 1}">
+<div class="mt-4" th:if="${page != null and page.totalPages > 1}">
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             <li class="page-item" th:classappend="${page.first} ? 'disabled'">
@@ -116,5 +189,43 @@
         </ul>
     </nav>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('durationSlider');
+
+        if (!slider) {
+            console.error('Slider element not found');
+            return;
+        }
+
+        // Параметры по умолчанию
+        let min = 15;
+        let max = 180;
+
+        // Если есть параметры из URL, используем их
+        if (document.getElementById('minDuration').value) {
+            min = parseInt(document.getElementById('minDuration').value);
+        }
+        if (document.getElementById('maxDuration').value) {
+            max = parseInt(document.getElementById('maxDuration').value);
+        }
+
+        noUiSlider.create(slider, {
+            start: [min, max],
+            connect: true,
+            range: { min: 15, max: 180 },
+            step: 5
+        });
+
+        slider.noUiSlider.on('update', function(values) {
+            const [currentMin, currentMax] = values.map(v => Math.round(v));
+            document.getElementById('minDuration').value = currentMin;
+            document.getElementById('maxDuration').value = currentMax;
+            document.getElementById('durationValue').textContent =
+                `от ${currentMin} до ${currentMax} мин`;
+        });
+    });
+</script>
 </body>
 </html>

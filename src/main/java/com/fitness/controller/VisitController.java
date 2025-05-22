@@ -10,10 +10,13 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,33 +40,68 @@ public class VisitController {
     public String listAllVisits(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String programName,
+            @RequestParam(required = false) String trainerName,
+            @RequestParam(required = false) Integer minDuration,
+            @RequestParam(required = false) Integer maxDuration,
             Model model) {
 
-        // Пагинация для клиентов
-        PageRequest pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
-        Page<Client> clientsPage = clientService.getClientsWithVisits(pageable);
+        boolean hasFilters = startDate != null || endDate != null
+                || programName != null || trainerName != null
+                || minDuration != null || maxDuration != null;
 
-        // Инициализация связанных сущностей для каждого посещения
-        clientsPage.getContent().forEach(client ->
-                client.getVisits().forEach(visit -> {
-                    Hibernate.initialize(visit.getTrainer());
-                    Hibernate.initialize(visit.getProgram());
-                })
-        );
+        // Если есть хотя бы один параметр фильтрации
+        if (startDate != null || endDate != null ||
+                programName != null || trainerName != null ||
+                minDuration != null || maxDuration != null) {
 
+            // Логика фильтрации
+            List<Client> clients = clientService.getAllClientsWithFilteredVisits(
+                    startDate,
+                    endDate,
+                    programName,
+                    trainerName,
+                    minDuration,
+                    maxDuration
+            );
+
+            model.addAttribute("clients", clients);
+            model.addAttribute("page", null); // Отключаем пагинацию
+
+        } else {
+            // Логика пагинации
+            PageRequest pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
+            Page<Client> clientsPage = clientService.getClientsWithVisits(pageable);
+
+            clientsPage.getContent().forEach(client ->
+                    client.getVisits().forEach(visit -> {
+                        Hibernate.initialize(visit.getTrainer());
+                        Hibernate.initialize(visit.getProgram());
+                    })
+            );
+
+            model.addAttribute("page", clientsPage);
+            model.addAttribute("clients", clientsPage.getContent());
+        }
+
+        // Общие атрибуты для всех случаев
         model.addAttribute("title", "Все посещения");
         model.addAttribute("content", "visits/all");
-        model.addAttribute("clients", clientsPage.getContent());
-        model.addAttribute("page", clientsPage);
-        return "layout";
-    }
+        model.addAttribute("allPrograms", programService.getAllPrograms());
+        model.addAttribute("allTrainers", trainerService.getAllTrainers());
 
-    @GetMapping("/client/{clientId}")
-    public String listVisits(@PathVariable Long clientId, Model model) {
-        model.addAttribute("title", "Посещения клиента");
-        model.addAttribute("content", "visits/list");
-        model.addAttribute("client", clientService.getClientById(clientId));
-        model.addAttribute("visits", visitService.getVisitsByClientId(clientId));
+        // Сохраняем параметры фильтрации для отображения в форме
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("programName", programName);
+        model.addAttribute("trainerName", trainerName);
+        model.addAttribute("minDuration", minDuration);
+        model.addAttribute("maxDuration", maxDuration);
+        model.addAttribute("hasFilters", hasFilters);
+
+
         return "layout";
     }
 
@@ -114,17 +152,37 @@ public class VisitController {
         visitService.deleteVisit(id);
         return "redirect:/visits/client/" + clientId;
     }
+
     @GetMapping("/trainers/by-program")
     @ResponseBody
     public List<TrainerDTO> getTrainersByProgram(
-            @RequestParam Long programId
-    ) {
+            @RequestParam Long programId) {
         return trainerService.getTrainersByProgram(programId)
                 .stream()
-                .map(trainer -> new TrainerDTO(
-                        trainer.getId(),
-                        trainer.getFullName()
-                ))
+                .map(t -> new TrainerDTO(t.getId(), t.getFullName()))
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Visit visit = visitService.getVisitById(id);
+        model.addAttribute("visit", visit);
+        model.addAttribute("client", visit.getClient());
+        model.addAttribute("programs", programService.getAllPrograms());
+        model.addAttribute("trainers", trainerService.getAllTrainers());
+        return "visits/form";
+    }
+
+    @GetMapping("/client/{clientId}")
+    public String listClientVisits(@PathVariable Long clientId, Model model) {
+        Client client = clientService.getClientById(clientId);
+        List<Visit> visits = visitService.getVisitsByClientId(clientId);
+
+        model.addAttribute("title", "Посещения клиента");
+        model.addAttribute("content", "visits/list");
+        model.addAttribute("client", client);
+        model.addAttribute("visits", visits);
+
+        return "layout";
     }
 }

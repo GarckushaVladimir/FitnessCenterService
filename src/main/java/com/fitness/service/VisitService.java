@@ -4,11 +4,18 @@ import com.fitness.model.Client;
 import com.fitness.model.Membership;
 import com.fitness.model.Visit;
 import com.fitness.repository.VisitRepository;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,9 +27,8 @@ public class VisitService {
         this.visitRepository = visitRepository;
     }
 
-    // Добавляем метод для получения посещений по ID клиента
     public List<Visit> getVisitsByClientId(Long clientId) {
-        return visitRepository.findByClientId(clientId);
+        return visitRepository.findByClientIdOrderByVisitDateDesc(clientId);
     }
 
     public Visit getVisitById(Long id) {
@@ -70,5 +76,61 @@ public class VisitService {
     @Transactional
     public void deleteVisit(Long id) {
         visitRepository.deleteById(id);
+    }
+
+    public List<Visit> searchVisits(
+            Long clientId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String programName,
+            String trainerName,
+            Integer minDuration,
+            Integer maxDuration) {
+
+        Specification<Visit> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Фильтр по клиенту (если указан)
+            if(clientId != null) {
+                predicates.add(cb.equal(root.get("client").get("id"), clientId));
+            }
+
+            // Остальные фильтры остаются без изменений
+            if (startDate != null) {
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get("visitDate"),
+                        startDate.atStartOfDay()
+                ));
+            }
+            if (endDate != null) {
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get("visitDate"),
+                        endDate.atTime(LocalTime.MAX)
+                ));
+            }
+            if (StringUtils.hasText(programName)) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("program").get("name")),
+                        "%" + programName.toLowerCase() + "%"
+                ));
+            }
+            if (StringUtils.hasText(trainerName)) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("trainer").get("fullName")),
+                        "%" + trainerName.toLowerCase() + "%"
+                ));
+            }
+            if (minDuration != null) {
+                predicates.add(cb.ge(root.get("program").get("duration"), minDuration));
+            }
+            if (maxDuration != null) {
+                predicates.add(cb.le(root.get("program").get("duration"), maxDuration));
+            }
+
+            query.orderBy(cb.desc(root.get("visitDate")));
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return visitRepository.findAll(spec);
     }
 }
