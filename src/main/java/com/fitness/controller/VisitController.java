@@ -46,16 +46,16 @@ public class VisitController {
             @RequestParam(required = false) String trainerName,
             @RequestParam(required = false) Integer minDuration,
             @RequestParam(required = false) Integer maxDuration,
+            @RequestParam(required = false) String clientName,
             Model model) {
 
         boolean hasFilters = startDate != null || endDate != null
                 || programName != null || trainerName != null
-                || minDuration != null || maxDuration != null;
+                || minDuration != null || maxDuration != null
+                || clientName != null;
 
         // Если есть хотя бы один параметр фильтрации
-        if (startDate != null || endDate != null ||
-                programName != null || trainerName != null ||
-                minDuration != null || maxDuration != null) {
+        if (hasFilters) {
 
             // Логика фильтрации
             List<Client> clients = clientService.getAllClientsWithFilteredVisits(
@@ -64,7 +64,8 @@ public class VisitController {
                     programName,
                     trainerName,
                     minDuration,
-                    maxDuration
+                    maxDuration,
+                    clientName
             );
 
             model.addAttribute("clients", clients);
@@ -93,6 +94,7 @@ public class VisitController {
         model.addAttribute("allTrainers", trainerService.getAllTrainers());
 
         // Сохраняем параметры фильтрации для отображения в форме
+        model.addAttribute("clientName", clientName);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("programName", programName);

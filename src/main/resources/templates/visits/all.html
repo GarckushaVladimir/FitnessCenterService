@@ -17,72 +17,98 @@
 <body th:fragment="content">
 <div class="container mt-4">
     <h2 class="mb-4">Все посещения</h2>
-    <form th:action="@{/visits}" method="get" class="mb-4 border p-3 rounded">
-        <div class="row g-3">
-            <!-- Дата начала -->
-            <div class="col-md-2">
-                <label>С даты</label>
-                <input type="date" name="startDate"
-                       th:value="${startDate}"
-                       class="form-control">
-            </div>
-
-            <!-- Дата окончания -->
-            <div class="col-md-2">
-                <label>По дату</label>
-                <input type="date" name="endDate"
-                       th:value="${endDate}"
-                       class="form-control">
-            </div>
-
-            <!-- Программа -->
-            <div class="col-md-2">
-                <label>Программа</label>
-                <select name="programName" class="form-select">
-                    <option value="">Все</option>
-                    <option th:each="p : ${allPrograms}"
-                            th:value="${p.name}"
-                            th:text="${p.name}"
-                            th:selected="${programName == p.name}">
-                    </option>
-                </select>
-            </div>
-
-            <!-- Тренер -->
-            <div class="col-md-2">
-                <label>Тренер</label>
-                <select name="trainerName" class="form-select">
-                    <option value="">Все</option>
-                    <option th:each="t : ${allTrainers}"
-                            th:value="${t.fullName}"
-                            th:text="${t.fullName}"
-                            th:selected="${trainerName == t.fullName}">
-                    </option>
-                </select>
-            </div>
-
-            <!-- Ползунок длительности -->
-            <div class="col-md-3">
-                <div class="mb-2">
-                    <label>Длительность:
-                        <span id="durationValue"
-                              th:text="'от ' + (${minDuration} ?: 15) + ' до ' + (${maxDuration} ?: 180)">
-            </span> мин
-                    </label>
-                </div>
-                <div id="durationSlider"></div>
-                <input type="hidden" id="minDuration" name="minDuration" th:value="${minDuration}">
-                <input type="hidden" id="maxDuration" name="maxDuration" th:value="${maxDuration}">
-            </div>
-
-            <!-- Кнопки -->
-            <div class="col-md-1 align-self-end">
-                <button type="submit" class="btn btn-primary w-100">
+    <!-- Поиск по ФИО клиента -->
+    <div class="filter-section">
+        <form th:action="@{/visits}" method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text"
+                       name="clientName"
+                       th:value="${clientName}"
+                       class="form-control"
+                       placeholder="Поиск по ФИО клиента">
+                <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i>
                 </button>
             </div>
+        </form>
+
+        <!-- Кнопка сброса фильтров -->
+        <div class="mb-3">
+            <a th:href="@{/visits}" class="btn btn-outline-danger">
+                <i class="bi bi-x-circle"></i> Сбросить все фильтры
+            </a>
         </div>
-    </form>
+    </div>
+
+    <!-- Основная форма фильтров -->
+    <div class="filter-section">
+        <form th:action="@{/visits}" method="get">
+            <input type="hidden" name="clientName" th:value="${clientName}">
+
+            <div class="row g-3">
+                <!-- Блок дат -->
+                <div class="col-md-2">
+                    <label>С даты</label>
+                    <input type="date" name="startDate"
+                           th:value="${startDate}"
+                           class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <label>По дату</label>
+                    <input type="date" name="endDate"
+                           th:value="${endDate}"
+                           class="form-control">
+                </div>
+
+                <!-- Блок программ -->
+                <div class="col-md-2">
+                    <label>Программа</label>
+                    <select name="programName" class="form-select">
+                        <option value="">Все</option>
+                        <option th:each="p : ${allPrograms}"
+                                th:value="${p.name}"
+                                th:text="${p.name}"
+                                th:selected="${programName == p.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Блок тренеров -->
+                <div class="col-md-2">
+                    <label>Тренер</label>
+                    <select name="trainerName" class="form-select">
+                        <option value="">Все</option>
+                        <option th:each="t : ${allTrainers}"
+                                th:value="${t.fullName}"
+                                th:text="${t.fullName}"
+                                th:selected="${trainerName == t.fullName}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Ползунок длительности -->
+                <div class="col-md-3">
+                    <label>Длительность:
+                        <span id="durationValue"
+                              th:text="'от ' + (${minDuration} ?: 15) + ' до ' + (${maxDuration} ?: 180)">
+                        </span> мин
+                    </label>
+                    <div id="durationSlider"></div>
+                    <input type="hidden" name="minDuration" id="minDuration" th:value="${minDuration}">
+                    <input type="hidden" name="maxDuration" id="maxDuration" th:value="${maxDuration}">
+                </div>
+
+                <!-- Кнопка применения фильтров -->
+                <div class="col-md-1 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <p></p>
     <div class="accordion" id="visitsAccordion">
         <div th:each="client : ${clients}" class="accordion-item"
              th:if="${not #lists.isEmpty(client.visits)} or ${not hasFilters}">
@@ -140,8 +166,21 @@
                             </tbody>
                         </table>
                     </div>
-                    <div th:if="${client.visits.isEmpty()}" class="text-muted">
-                        Нет посещений, соответствующих фильтрам.
+                    <div th:if="${client.visits.isEmpty()}">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>История посещений</h5>
+                            <!-- Кнопка только при отсутствии фильтров -->
+                            <a th:if="${not hasFilters}"
+                               th:href="@{/visits/client/{id}(id=${client.id})}"
+                               class="btn btn-primary btn-sm visit-details-link">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Добавить посещение
+                            </a>
+                        </div>
+                        <div class="text-muted">
+                            <span th:if="${hasFilters}">Нет посещений, соответствующих фильтрам</span>
+                            <span th:unless="${hasFilters}">Пока нет ни одного посещения</span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +63,8 @@ public class ClientService {
             String programName,
             String trainerName,
             Integer minDuration,
-            Integer maxDuration) {
+            Integer maxDuration,
+            String clientName) {
 
         List<Client> clients = clientRepository.findAll();
 
@@ -82,6 +84,11 @@ public class ClientService {
                     ).stream()
                     .filter(v -> v.getClient().getId().equals(client.getId()))
                     .collect(Collectors.toList());
+
+            // Фильтрация по имени клиента
+            if (clientName != null && !client.getFullName().toLowerCase().contains(clientName.toLowerCase())) {
+                filteredVisits = Collections.emptyList();
+            }
 
             client.setVisits(filteredVisits);
         });
